@@ -1,6 +1,9 @@
-var ctx = document.getElementById("achievementChart").getContext('2d');
-// Placeholder in case data could not be loaded for whatever reason:
-var transactionChart = new Chart(ctx, {
+let key = 'BEDCC4DF8D6E903541324F215814C1D5';
+let steamid = '76561198025410384';
+
+// Placeholder while data is loading:
+let ctx = document.getElementById("achievementChart").getContext('2d');
+let transactionChart = new Chart(ctx, {
 	options: {
 		title: {
 			display: true,
@@ -10,12 +13,12 @@ var transactionChart = new Chart(ctx, {
 });
 
 function renderAchievements(months, achievementCountDataSets) {
-	var ctx = document.getElementById("achievementChart").getContext('2d');
-	var data = {
+	let ctx = document.getElementById("achievementChart").getContext('2d');
+	let data = {
 		labels: months,
 		datasets: achievementCountDataSets
 	};
-	var options = {
+	let options = {
 		scales: {
 			xAxes: [{
 				stacked : true,
@@ -39,7 +42,7 @@ function renderAchievements(months, achievementCountDataSets) {
 			}]
 		}
 	};
-	var achievementChart = new Chart(ctx, {
+	let achievementChart = new Chart(ctx, {
 		type: 'bar',
 		data: data,
 		options: options
@@ -48,7 +51,7 @@ function renderAchievements(months, achievementCountDataSets) {
 
 function parseAchievements(rawAchievements) {
 	// Extraction:
-	var achievements = [];
+	let achievements = [];
 	for (i = 0; i < rawAchievements.length; i++) {
 		if (rawAchievements[i].achieved === 1) {
 			achievements.push({
@@ -58,8 +61,8 @@ function parseAchievements(rawAchievements) {
 		}
 	}
 
-	var dates = [];
-	var achievementCounts = [];
+	let dates = [];
+	let achievementCounts = [];
 	if (achievements.length > 0) {
 		// Sorting:
 		function compareAchievements(a, b) {
@@ -74,11 +77,11 @@ function parseAchievements(rawAchievements) {
 		achievements.sort(compareAchievements);
 
 		// Grouping:
-		var count = 0;
+		let count = 0;
 		dates = [new Date(achievements[0].unixtime*1000)];
 		achievementCounts = [1];
 		for (i = 1; i < achievements.length; i++) {
-			var date = new Date(achievements[i].unixtime*1000);
+			let date = new Date(achievements[i].unixtime*1000);
 			if (date.getYear() === dates[count].getYear() &&
 				date.getMonth() === dates[count].getMonth() &&
 				date.getDay() === dates[count].getDay()) {
@@ -98,8 +101,8 @@ function parseAchievements(rawAchievements) {
 }
 
 function parseGames(games) {
-	var gameIds = [];
-	var names = [];
+	let gameIds = [];
+	let names = [];
 	for (i = 0; i < games.length; i++) {
 		gameIds[i] = games[i].appid;
 		names[i] = games[i].name;
@@ -111,12 +114,12 @@ function parseGames(games) {
 	};
 }
 
-var getJSON = function(url, callback) {
-    var xhr = new XMLHttpRequest();
+let getJSON = function(url, callback) {
+    let xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'json';
     xhr.onload = function() {
-      var status = xhr.status;
+      let status = xhr.status;
       if (status === 200) {
         callback(null, xhr.response);
       } else {
@@ -131,8 +134,8 @@ function processAchievementsForGame(appid) {
 		getJSON(
 			'http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/'
 			 + '?appid=' + appid
-			 + '&key=' + 'BEDCC4DF8D6E903541324F215814C1D5'
-			 + '&steamid=' + '76561198025410384',
+			 + '&key=' + key
+			 + '&steamid=' + steamid,
 			function(error, data) {
 				if (error !== null) {
 					fullfill('unsuccessful');
@@ -150,13 +153,13 @@ function processAchievementsForGame(appid) {
 
 function findFirstYearAndMonth(gamesWithAchievements) {
 	// Find the first year and month:
-	var today = new Date();
-	var firstYear = today.getFullYear();
-	var firstMonth = today.getMonth();
+	let today = new Date();
+	let firstYear = today.getFullYear();
+	let firstMonth = today.getMonth();
 	for (i = 0; i < gamesWithAchievements.length; i++) {
-		var dates = gamesWithAchievements[i].dates;
+		let dates = gamesWithAchievements[i].dates;
 		for (j = 0; j < dates.length; j++) {
-			var date = dates[j];
+			let date = dates[j];
 			if (date.getFullYear() < firstYear) {
 				firstYear = date.getFullYear();
 				firstMonth = date.getMonth();
@@ -237,7 +240,7 @@ function makeMonthsAndDataSets(gamesWithAchievements, firstYear, firstMonth) {
 }
 
 function processResponses(gameIds, names, responses) {
-	var gamesWithAchievements = [];
+	let gamesWithAchievements = [];
 	for (i = 0; i < responses.length; i++) {
 		response = responses[i];
 		if (response != 'unsuccessful') {
@@ -260,7 +263,11 @@ function processResponses(gameIds, names, responses) {
 
 function getAndProcessGamesWithAchievements() {
 	getJSON(
-		'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=BEDCC4DF8D6E903541324F215814C1D5&steamid=76561198025410384&format=json&include_appinfo=1',
+		'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/'
+		 + '?key=' + key
+		 + '&steamid=' + steamid
+		 + '&format=json'
+		 + '&include_appinfo=1',
 		function(error, data) {
 			if (error !== null) {
 				alert('Steam API get request unsuccessful: ' + error);
